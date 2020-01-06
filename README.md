@@ -5,7 +5,9 @@ Summary of the contents lectured in 'Cloud and Service Oriented Computing', a co
 ## Index
 * [Introduction](#introduction)
   * [Basic Concepts](#basic-concepts)
-  * [Evolution of cloud platforms](#Evolution-of-cloud-platforms)
+  * [Evolution of cloud platforms](#evolution-of-cloud-platforms)
+* [Designing an application with a microservice architecture - Part I](#designing-an-application-with-a-microservice-architecture---part-i)
+* [Designing an application with a microservice architecture - Part II](#designing-an-application-with-a-microservice-architecture---part-ii)
 
 ## Introduction
 ### Basic Concepts
@@ -77,13 +79,15 @@ Summarizing in an image:
   * How is the physical access to the machine secured?
   * Where are storage backups sent?
   * ...
-1. IaaS
+  
+__1. IaaS__
   * Still requires heavy overhead because staff are still responsible for various tasks
     * Patching and backing up servers;
     * Installing packages;
     * Keeping the operating system up-to-date;
     * Monitoring the application.
-2. PaaS
+    
+__2. PaaS__
   * reduces the overhead
     * cloud provider handles operating systems, security patches, and even the required packages to support a specific platform
     * Instead of building VM, developers now user "platform targets"
@@ -91,7 +95,8 @@ Summarizing in an image:
     * What size services are needed?
     * How do the services scale horizontally?
     * And vertically?
-3. Serverless
+    
+__3. Serverless__
   * Abstracts servers by focusing on event- driven code.
   * Developers focus on a microservice that does one thing (instead of platform)
   * Questions are:
@@ -105,3 +110,36 @@ Summarizing in an image:
       * scale each endpoint independently
       * pay for usage
       * no costs are incurred when the APIs aren't being called
+
+## Designing an application with a microservice architecture - Part I
+* Key idea
+  * Application as a set of services instead of one large application
+  * A service is a standalone, independently deployable software component that implements some useful functionality.
+* __Hexagonal architecture style__
+  * Alternative to the layered architectural style (UI Logic -> Business Logic -> Data Access Layer)
+  * Puts the business logic at the center
+  * Instead of the UI layer, the application has __one or more inbound adapters__ that handle requests from outside and invoke the business logic (center of the hexagon)
+  * Business logic independent of the adapters
+  * Decoples business logic from UI and data acess logic in the adapters
+* __Desinigning with microservice architecture__
+  * Identify system operations -> Identify services -> Define APIs and collaborations
+  * __Identify system operations__
+    * Identify the application's requirements (_aka_ User Stories and associated user scenarios)
+    * A requirement / external request will map to a system operation
+    * A system operation is an __abstraction of a request that the application must handle__
+      * Can be a __command__ -> update data (create, update, delete)
+        * specified by the parameters, return value and behaviour
+        * Behaviour:
+          * Specifies the __preconditions__ that must be true before invoke the operation
+          * Specifies __post-conditions__ that are true after invoking the operation
+      * Can be a __query__ -> retrivies data (get)
+    * Two steps:
+      * Create a high-level domain model (identify key classes)
+        * __nouns__ of the user stories
+        * simpler than the fina implementation
+        * The application __won’t even have a single domain model__ because each service has its own domain model
+        * Useful for defining vocabulary for describing behaviour / system operations
+      * Describe operations using those classes
+        * __verbs__ of the user stories
+
+## Designing an application with a microservice architecture - Part II
