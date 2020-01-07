@@ -240,7 +240,7 @@ __3. Serverless__
     * The __upstream__ context defines the domain model passed between the two contexts.
     * The __downstream__ context should be well aware of any changes happening to the upstream context.
     * _e.g.:_
-      * [Imgur](https://i.imgur.com/kzPFuhz.png)
+      * ![Imgur](https://i.imgur.com/kzPFuhz.png)
   * Notes
     * Each service should represent a Business Logic (___Is it not this decomposition by BC? Confirm with them___)
     * A data service is probably a bad design
