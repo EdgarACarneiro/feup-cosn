@@ -11,9 +11,11 @@ Summary of the contents lectured in 'Cloud and Service Oriented Computing', a co
   * [Decomposition](#decomposition)
   * [Service API](#service-api)
   * [Microservices Design Principles](#microservices-design-principles)
-* [Inter-Service Communication - Part I](#inter---service-communication---part-i)
+* [Inter-Service Communication - Part I](#inter-service-communication---part-i)
   * [Synchronous communication](#synchronous-communication)
-* [Inter-Service Communication - Part II](#inter---service-communication---part-ii)
+* [Inter-Service Communication - Part II](#inter-service-communication---part-ii)
+  * [Asynchronous communication](#asynchronous-communication)
+* [Software Architecture Patterns](#software-architecture-patterns)
 
 ## Introduction
 ### Basic Concepts
@@ -290,7 +292,7 @@ __3. Serverless__
     * Can be a non-blocking IO implementation, using callbacks
   * __Asynchronous__
     * Send message and proceed without waiting for response
-## __Synchronous communication__
+### __Synchronous communication__
 * __REST__ (Representational State Transfer)
   * Uses a navigational scheme to represent objects and services over a network, known as resources.
   * Not protocol dependent
@@ -332,3 +334,65 @@ __3. Serverless__
     * JSON format
 
 ## Inter-Service Communication - Part II
+### __Asynchronous communication__
+* Allows the services to be __more autonomous__
+* The client __does not wait__ for a response
+* The client may note receive a __response__ at all or the response will be received asynchronously __via a different channel__
+* __Middleware__: lightweight and __dumb__ message broker
+  * There is __no business logic__ in the broker and it is a centralized entity with high-availability
+* Message Protocols
+  * JSON
+  * XML
+  * Apache AVRO
+    * Compact, fast, binary data format
+* __Messaging styles__
+  * Single receiver
+    * A given message is __reliably__ delivered from a producer to exactly one consumer through a message broker
+  * Multiple receivers
+    * Message produced by a single producer is delivered to more than one consumer
+    * ___Publisher-subscriber___ pattern (pub-sub)
+    * AMQP-based brokers support pub-sub messaging, _e.g._ RabbitMQ
+    * ___Kafka___ is the __most widely used__ broker for _pub-sub_ messaging between microservices
+* __AMQP__ - Advanced Message Queuing Protocol
+  * Protocol for __interoperability__ between all messaging middleware
+  * Ensures __reliability of message delivery__, fast and message acknowledgements
+    * When a message is delivered to a consumer, the __consumer notifies the broker__
+    * The broker will only completely remove a message from a queue when it receives a notification for that message
+    * The queue ensures the ordered delivery and processing of the messages
+  * AMQP Message Brokers: Software that implements the protocol (RabbitMQ, ActiveMQ, ...)
+  * _e.g._
+    * ![Imgur](https://i.imgur.com/3AOfcXW.png)
+  * Features
+    * _heartbeat_ / healtcheck
+      * To ensure that the application layer promptly finds out about disrupted connections and completely unresponsive peers
+    * Broker failures
+      * AMQP standard defines a concept of durability for exchanges, queues, and persistent messages, requiring that a durable object or persistent message survive a restart
+    * Producer failures
+      * __Retransmit__ any messages for which an acknowledgement has not been received from the broker
+      * Possibility of __message duplication__: consumer applications need to be implement in a way that __internal state doesn’t change__ even if the same message is processed multiple times.
+  * RabbitMQ
+    * General purpose message broker, employing several variations of __point to point__, __request/reply__ and __pub-sub__ communication styles patterns.
+    * __Smart broker / dumb consumer__ model
+    * _e.g_
+      * [Imgur](https://i.imgur.com/aC1Wjc5.png)
+* __Kafka__
+  * Distributed pub-sub messaging system, designed for high volume messages
+  * Has its own messaging protocol
+  * __Data is stored durably__, in order and can be read deterministically
+  * Data is distributed for __failover__ and __scalability__
+  * Unit of data is a __message__ (key, value, timestamp)
+    * __Value__ is an array of bytes
+    * Messages are organized in __Topics__
+      * Topics may be split into multiple __partitions__
+        * A producer can select a partition by using a __key__
+  * Partitions are the primary mechanism in Kafka for parallelizing consumption and __scaling a topic__ beyond the throughput limits of a single node
+  * __Each partition can be hosted in different nodes__
+  * No need to specify a partition to write, by default
+  * __Dumb broker__ and assumes __smart consumers__ to read its buffers
+  * Use cases:
+    * Distribute a message to multiple receivers
+      * ![Imgur](https://i.imgur.com/T2DlHL9.png)
+    * Similar receivers consume messages, from the same topic, for scaling the consumer side
+      * ![Imgur](https://i.imgur.com/aPMjye5.png)
+  
+## Software Architecture Patterns
