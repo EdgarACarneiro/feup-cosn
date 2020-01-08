@@ -20,7 +20,11 @@ Summary of the contents lectured in 'Cloud and Service Oriented Computing', a co
   * [Service Oriented Architecture (SOA)](#service-oriented-architecture-(soa))
   * [Microservices Architecture](#microservices-architecture)
 * [Integrating Services - Part I](#integrating-services---part-i)
+  * [API Gateway](#api-gateway)
+  * [Resiliency](#resiliency)
 * [Integrating Services - Part II](#integrating-services---part-ii)
+  * [Observability](#observability)
+  * [Security](#security)
 
 ## Introduction
 ### Basic Concepts
@@ -337,6 +341,7 @@ __3. Serverless__
   * GraphQL
     * Improves the REST model by allowing to retrieve multiple data in a single call
     * JSON format
+    * Netflix Falcor provides similar function
 
 ## Inter-Service Communication - Part II
 ### __Asynchronous communication__
@@ -505,7 +510,113 @@ __3. Serverless__
     * combination of monitoring, distributed logging, distributed tracing, and visualization of a service’s runtime behavior and dependencies (as seen in previous chapters)
     
 ## Integrating Services - Part I
+* In a monolith approach, a request may be satisfied with a single call
+* With microservices, we may need to access multiple services to satisfy the same request
+  * External access has higher latency
+* Invoking the services directly (_e.g._ web service calling microservices) have the following problems:
+  * __Multiple requests__ to retrieve the data needed
+    * inefficient
+    * can result in a poor user experience;
+  * The __lack of encapsulation__
+    * caused by clients knowing about each service and its API
+    * difficult to change the architecture and the APIs
+    * developers might change an API in a way that breaks existing clients
+    * Updating client’s app is more cumbersome
+  * Services might use __communication mechanisms__ that aren’t convenient or practical for clients to use
 
+### API Gateway
+* __Entry point service__ into the microservices-based application from external API clients
+* __Encapsulates__ the application’s internal architecture and provides an API to its clients
+* May also have other responsibilities, such as __authentication__ and __monitoring__
+* Visual impact
+  * ![Imgur](https://i.imgur.com/fKkOoJi.png)
+* Responsible for
+  * Request routing (to a service)
+  * API composition (invokes multiple services)
+  * Protocol translation
+    * Client protocol may be different from the services (_e.g._ REST and RPC)
+* May have 3 API modules
+  * __Mobile API__
+    * API for the mobile client
+  * __Browser API__ 
+    * API for the Js app runinng on the browser
+  * __Public API__
+    * API for third party developers
+* Why provide __each client with its own API__?
+  * _e.g._ -> mobile apps present less information than browsers
+  * Higher reliability
+  * Independently scalable
+* Architecture Disadvantages
+  * __yet another highly available component__ that must be developed, deployed, and managed
+  * __risk__ that the API gateway becomes a development __bottleneck__
+    * Developers must update the API gateway to expose their services’s API
+    * The process for updating the API gateway must be as lightweight as possible
+* Design issues
+  * Performance and scalability
+    * Every external request goes through the gateway
+    * Synchronous I/O model
+      * Each connection is handle by a dedicated thread
+      * OS threads are heavyweight
+      * Limit on the number of threads
+    * Asynchronous (nonblocking) I/O model
+      * Single thread dispatches I/O requests to event handlers
+      * More scalable but more complex programming
+  * Writing maintainable code by using reactive programming abstractions
+    * Calling services sequentially
+      * The response time is the sum of all services response times
+      * If there is no dependencies among services, all services should be __called concurrently__
+        * Solution: __REACTIVE APPROACH__
+          * Java 8 CompletableFutures
+          * RxJava (Reactive Extensions for Java) Observables, created by Netflix specifically to solve this problem
+          * Scala Futures
+          * JavaScript promises, RxJS (for NodeJS)
+  * Handling partial failure
+    * Properly handle failed requests and requests that have unacceptably high latency.
+      * Circuit breaker pattern when invoking services
+  
+### Resiliency
+* __measure of the capacity__ of a system or individual components in a system to __recover quickly from a failure__
+* attribute of a system that enables it to __deal with failure in a way that doesn’t cause the entire system to fail__ (other definition)
+* __microservices__ architecture is naturally a __distributed system__
+  * collection of computes (or nodes) connected over the network, with no shared memory, that appears to its users as a single coherent system
+  * __Network will always be unreliable__
+* __Patterns__
+  * Timeout
+    * deciding when to stop waiting for a response at the caller service level
+    * After that time some action is taken
+    * Isolate failures
+      * Isolate failures
+        * Service A (integrator) calls services X and Y
+          * A timeout should be defined separately for X and Y
+        * A failure of another service does not have to become your service’s problem
+  * Circuit Breaker
+    * Wrap the invocation with an object that monitors and prevents further damage to the system
+    * If the service invocation __fails repeatedly__ and reaches a certain __threshold__, then the circuit breaker wrapper __prevents any further invocation__ by the external service
+    * After a certain period of time (circuit reset timeout), a __new request is allowed__ (Half Open state). If it succeeds the breaker goes to the closed state (allows requests), and to the open state (does not allow requests) otherwise
+    * Prevents cascade failures
+    * Visual schema
+      * !
+  * Fail fast
+    * detect a failure as quick as possible
+    * Concept
+      * a failure response is much better than a slow failure response
+  * Bulkhead
+    * Application is partitioned so that an error that occurs in a partition is localized to that one partition only, avoiding leading the entire system to a fail state
+    * Procedure
+      * Group similar operations into a microservice
+      * Independent business functionalities are implemented as separate microservices
+    * Following the microservices architecture ensures this pattern
+  * Load Balancing
+    * Distribute the load across multiple microservice instances
+    * Kubernetes (_e.g._) provides this capability
+  * Failover
+    * Reroute requests to alternate services if a given service fails
+    * Kubernetes (_e.g._) provides this capability
+  * Let it crash
+    * If service is unstable and recovery difficult -> start new server instance
+    * Having a service per host and a rapid server startup time is crucial (container based)
 
 ## Integrating Services - Part II
+### Observability
 
+### Security
