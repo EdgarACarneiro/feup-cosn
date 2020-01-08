@@ -383,7 +383,7 @@ __3. Serverless__
     * General purpose message broker, employing several variations of __point to point__, __request/reply__ and __pub-sub__ communication styles patterns.
     * __Smart broker / dumb consumer__ model
     * _e.g_
-      * [Imgur](https://i.imgur.com/aC1Wjc5.png)
+      * ![Imgur](https://i.imgur.com/aC1Wjc5.png)
 * __Kafka__
   * Distributed pub-sub messaging system, designed for high volume messages
   * Has its own messaging protocol
