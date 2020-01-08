@@ -200,7 +200,6 @@ __3. Serverless__
     * DDD vs global business modelling
       * No single model for the entire business
       * The domain model __is private__ to the sub-domain and other sub-domains __do not have to agree__ with the model developed.
-> Must understand the difference between the two decompositions
 * __Notes__
   * A good design will scope out __one microservice to a single bounded context__
   * The SOA (Service Oriented Architecture) approach would model the enterprise as a whole
@@ -595,7 +594,7 @@ __3. Serverless__
     * After a certain period of time (circuit reset timeout), a __new request is allowed__ (Half Open state). If it succeeds the breaker goes to the closed state (allows requests), and to the open state (does not allow requests) otherwise
     * Prevents cascade failures
     * Visual schema
-      * !
+      * ![Imgur](https://i.imgur.com/cy0Mbdf.png)
   * Fail fast
     * detect a failure as quick as possible
     * Concept
@@ -618,5 +617,152 @@ __3. Serverless__
 
 ## Integrating Services - Part II
 ### Observability
+* Includes
+  * Monitoring
+  * Logging
+  * Tracing
+  * Visualization
+* Aim
+  * be alerted if there is a problem, such as a failed service instance or a disk filling up
+  * ideally before it impacts a user
+  * in case of error
+    * Be able to troubleshoot and identify the problem's source
+* __Patterns__
+  * Health check API
+    * A service exposes a health check API endpoint, such as `GET /health`, which returns the health of the service
+      * Verifies database access and communication server
+    * Invoked periodically to determine the health of the service.
+    * Visual schema
+      * ![Imgur](https://i.imgur.com/fBscXC1.png)
+  * Log aggregation
+    * Aggregate the logs of all services in a centralized database that supports searching and alerting
+      * Aggregate logs
+      * Store them
+      * Allow user searches
+    * When a request involves more than one service, the log aggregation allows to have all log information, related to that query, centralized
+    * Alerts can be configured to be triggered when log entries match a given search criteria
+    * Popular infrastructures
+      * _ElasticSearch_
+      * _Logstash_
+      * _AWS  CloudWatch Logs_
+      * ...
+  * Distributed tracing pattern
+    * Assign each external request a unique ID and record how it flows through the system from one service to the next in a centralized server that provides visualization and analysis
+      * Makes uses of the logs
+    * A __trace__  represents an external request and consists of one or more spans.
+    * A __span__ represents an operation
+      * key attributes
+        * operation name
+        * start timestamp
+        * end time
+      * Can have one or more child spans
+        * represent nested operations
+  * Application metrics
+    * Services report metrics to a central server that provides aggregation, visualization, and alerting
+      * Metrics to provide critical information about the health of an application
+        * __Infrastructure-level__: CPU, memory, disk utilization
+        * __Application-level__: service request latency and number of requests executed
+    * Push model
+      * A service instance sends the metrics to the Metrics Service by invoking an API
+        * _e.g._ AWS Cloudwatch metrics
+    * Pull model
+      * Metrics Service invokes a service API to retrieve the metrics from the service instance
+        * _e.g._ Promotheus
+  * Exception tracking
+    * Services report exceptions to a central service
+      * de-duplicates exceptions
+      * generates alerts
+      * manages the resolution of exceptions
+    * Exception might be a symptom of a failure or a programming bug
+    * Service rarely log an exception
+      * when it does, it is important to identify the root cause.
+  * Audit logging
+    * Record user actions in a database
+      * Objectives
+        * help customer support
+        * ensure compliance
+        * detect suspicious behavior
+    * Each audit log entry records:
+      * identity of the user
+      * action they performed
+      * the business object(s)
 
 ### Security
+* Includes
+  * __Authentication__
+    * Verifies the identity
+      * typically verifies credentials, such as a user ID and password
+  * __Authorization__
+    * Verify if allowed to perform the requested operation on the specified data
+    * Applications often use a combination of role-based security and access control lists (ACLs).
+  * __Auditing__ (Repeated from previous chapter)
+    * Tracking operations performed
+      * Objectives
+        * help customer support
+        * ensure compliance
+        * detect suspicious behavior
+  * __Secure interprocess communication__
+    * Ideally,all communication in and out of services should be over Transport Layer Security (TLS)
+    * Interservice communication may need authentication
+* Session Token
+  * Stores ID and roles of the user
+* Security context
+  * Established by the system based on the Session Token
+  * Request handlers retrieve user information from the security context
+    * Client has to send session token on all requests
+* Monolithic vs Microservices
+  * Monolithic
+    * In-memory security context
+      * Share context among several requests
+    * Centralized session
+      * Store session information in a database
+  * Microservices
+    * Services do not share memory
+    * Central database not compliant with microservices
+* Handling authentication in the API gateway
+  * Avoids authentication by all services
+  * Centralizes the security issues in a single point
+* Handling Authorization
+  * Should be handled by the services
+    * Otherwise the API Gateway becomes to coupled
+    * API Gateway can only apply role-base authorization to URL paths
+* Token Types
+  * UUID - universally unique identifier
+    * requires an asynchronous RPC call by the service to a security server in order to retrieve user information
+  * JWT - Json Web Token
+    * Transparent token
+    * Contains the user information, ID and Roles, and expiration date
+    * signed by the creator (API Gateway) and decoded by the recipient (service) using a pair of keys
+* __OAuth 2.0__ standard protocol
+  * __Authorization protocol__ that was originally designed to enable a user of a public cloud service, such as GitHub or Google, to grant a third-party application access to its information __without revealing its password__
+  * Can be used for authentication and authorization in a microservice application
+  * Uses __HTTPS__ for communication between the client and the authorization server
+  * Key concepts
+    * __Authorization Server__
+      * Provides an API for authenticating users and obtaining an __access token__ and a __refresh token__ (Spring Oauth)
+    * __Resource Owner__
+      * The owner of the resources that needs to give authorization
+    * __Resource Server__
+      * A service that uses an access token to authorize access
+      * In a microservice architecture, the services are resource servers
+    * __Client__
+      * A client that wants to access a Resource Server
+      * In a microservice architecture, API Gateway is the OAuth 2.0 client
+    * __Access Token__
+      * A token that grants access to a Resource Server
+      * The format of the access token is implementation dependent
+      * Some implementations, such as Spring OAuth, use JWTs
+    * __Refresh Token__
+      * A long-lived yet revocable token that a Client uses to obtain a new Access Token
+  * Visual schema of a basic sequence flow for an Oauth2
+    * ![Imgur](https://i.imgur.com/TpLPzue.png)
+  * Use cases
+    * API client
+      * ![Imgur](https://i.imgur.com/JlE6vgS.png)
+    * session-oriented clients
+      * ![Imgur](https://i.imgur.com/QofhGr7.png)
+  * Implementing authentication and authorization correctly is challenging.
+  * Frameworks
+    * Passport (NodeJS)
+    * Spring Security
+    * ...
