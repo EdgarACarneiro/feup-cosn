@@ -16,6 +16,11 @@ Summary of the contents lectured in 'Cloud and Service Oriented Computing', a co
 * [Inter-Service Communication - Part II](#inter-service-communication---part-ii)
   * [Asynchronous communication](#asynchronous-communication)
 * [Software Architecture Patterns](#software-architecture-patterns)
+  * [Monolith Architecture](#monolith-architecture)
+  * [Service Oriented Architecture (SOA)](#service-oriented-architecture-(soa))
+  * [Microservices Architecture](#microservices-architecture)
+* [Integrating Services - Part I](#integrating-services---part-i)
+* [Integrating Services - Part II](#integrating-services---part-ii)
 
 ## Introduction
 ### Basic Concepts
@@ -396,3 +401,111 @@ __3. Serverless__
       * ![Imgur](https://i.imgur.com/aPMjye5.png)
   
 ## Software Architecture Patterns
+* Architecure Evolution
+  * Monolith
+  * SOA (2000s)
+  * Microservices (2010s)
+
+### Monolith Architecture
+* Contained in a single deployment
+* Everything, from user interface to database calls, is included in the same codebase
+* Good for __relatively small__ applications
+* __Advantages__
+  * Easier to pull down a single code base and start working
+  * Ramp up time may be less
+  * Creating test environments is as simple as providing a new copy
+  * It may be designed to include multiple components and applications
+* __Disadvantages__
+  * Difficult to work in parallel in the same code base
+  * Any change, no matter how trivial, requires deploying a new version of the entire application
+  * Refactoring potentially impacts the entire application -> tight coupling
+  * Often the only solution to scale is to create multiple, resource-intensive copies of the monolith
+  * Integration can be difficult
+  * Difficulty to test due to the need to configure the entire monolith
+  * Code reuse is challenging and often other apps end up having their own copies of code
+  * Hard to apply agile development
+  * Single point of failure
+  * Difficult to adopt new technologies and frameworks, as all the functionalities have to build on homogeneous technologies/ frameworks
+* __N-Layer applications__
+  * Partition application logic into specific layers
+  * Most common layers
+    * UI Layer
+    * Business Logic Layer
+    * Data access Layers
+  * Advantages
+    * Refactoring is isolated to a layer
+    * Teams can independently build, test, deploy, and maintain separate layers
+    * Layers can be swapped out
+* Visual Schema
+  * ![Imgur](https://i.imgur.com/9ec3q0S.png)
+    
+### Service Oriented Architecture (SOA)
+* Applications are composed of more loosely coupled components that use a __messaging bus__ to communicate between themselves
+* Services -> __reusable, loosely coupled__ entities
+  * Self-contained implementation of a well-defined __business functionality__
+  * Acessible via calls over the network
+  * Software components with well-defined interfaces that are implementation-independent. Separation of the interface (the what) from its implementation (the how).
+  * Consumers are only concerned about the service interface and do not care about its implementation.
+  * Composite services can be built from aggregates of other services.
+  * Deployed inside an application server
+* Requires an additional layer - __Enterprise Service Bus (ESB)__
+  * Integrates business capabilities (product, customer, ...) -> __creates composite business capabilities__, exposed to the consumers
+  * Contains a significant portion of the business logic of the entire application
+  * __Monolithic entity__ where all developers share the same runtime to develop/deploy their service integrations.
+  * Smart Pipes
+* API Gateway
+  * Difficulty in interact with SOAP, which leads to
+  * Layer on top of the existing SOA implementations
+  * Known as the __API façade__
+  * Exposes a simple APIfor a given business functionality and hides all the internal complexities of the ESB/Web Services layer
+  * Also used for security, throttling, caching and monetization
+* Visual Schema
+  * ![Imgur](https://i.imgur.com/qAOMF68.png)
+  * ![Imgur](https://i.imgur.com/GpNsKHr.png)
+
+### Microservices Architecture
+* Independent application services delivering one single functionality in a loosely connected and self-contained fashion, communicating through a light-weight protocol (e.g. HTTP, REST, ...)
+* More details in previous chapters
+* Visual schema
+  * ![Imgur](https://i.imgur.com/Vgot7gC.png)
+* __Characteristics__
+  * __Business Capability Oriented__
+    * Service a specific business purpose a well-defined set of responsibilities
+    * Each service does only one thing and does it well
+    * SOA weill have more generic services, while here we have fine-grained services
+  * __Autonomous__: Develop, Deploy, and Scale Independently
+    * Microservices are developed, deployed, and scaled as independent entities
+    * Services do not share the same execution time
+    * Increases system resilience due to isolation of failures to service level;
+    * Can scale microservices according to each microservice traffic
+  * __Elimination of the central ESB__ by breaking its functionalities into each service
+  * Services take care of the inter-service communication and composition logic
+    * Using __smart endpoints and (dumb pipes__ or lightweight protocols like REST)
+      * Smart endpoints
+        * All business logic resides at micro service level
+      * Dumb pipes
+        * Only __route messages__
+        * Zero business logic
+  * __Failure tolerance__
+    * One microsrevice crashes -> only it collapses
+    * Need to apply all the resiliency-related capabilities, such as circuit breakers, disaster recovery, load- balancing, fail-over, and dynamic scaling based on traffic patterns
+  * __Decentralized data management__
+    * __Each microservice has its own database__
+    * Several databases might need to be updated as a consequence of a single API request
+    * Microservices update each other using the APIs
+    * A microservice can only access its own database
+  * __Service Governance__
+    * __Decentralizede process__ -> each entity govens its own domain
+      * In -soa this concepts are discarded
+    * Design-time governance of services
+      * Technologies, protocols, ...
+    * Runtime governance
+      * Service definitions, service registry and discovery, service versioning, service runtime dependencies, service ownerships and consumers, enforcing QoS, and service observerability
+  * __Service Observerability__
+    * combination of monitoring, distributed logging, distributed tracing, and visualization of a service’s runtime behavior and dependencies (as seen in previous chapters)
+    
+## Integrating Services - Part I
+
+
+## Integrating Services - Part II
+
