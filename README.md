@@ -11,6 +11,9 @@ Summary of the contents lectured in 'Cloud and Service Oriented Computing', a co
   * [Decomposition](#decomposition)
   * [Service API](#service-api)
   * [Microservices Design Principles](#microservices-design-principles)
+* [Inter-Service Communication - Part I](#inter---service-communication---part-i)
+  * [Synchronous communication](#synchronous-communication)
+* [Inter-Service Communication - Part II](#inter---service-communication---part-ii)
 
 ## Introduction
 ### Basic Concepts
@@ -117,7 +120,8 @@ __3. Serverless__
 ## Designing an application with a microservice architecture - Part I
 * Key idea
   * Application as a set of services instead of one large application
-  * A service is a standalone, independently deployable software component that implements some useful functionality.
+  * A service is a standalone, independently deployable software component that implements some useful functionality
+  * Each service is deployed separately and they communicate through well-defined network-based interfaces
 * __Hexagonal architecture style__
   * Alternative to the layered architectural style (UI Logic -> Business Logic -> Data Access Layer)
   * Puts the business logic at the center
@@ -127,7 +131,7 @@ __3. Serverless__
 * __Desinigning with microservice architecture__
   * Identify system operations -> Identify services -> Define APIs and collaborations
   * __Identify system operations__
-    * Identify the application's requirements (_aka_ User Stories and associated user scenarios)
+    * Identify the application's requirements (_aka_ User Stories and associated user scenarios) -> ___macro-architecture___
     * A requirement / external request will map to a system operation
     * A system operation is an __abstraction of a request that the application must handle__
       * Can be a __command__ -> update data (create, update, delete)
@@ -180,7 +184,7 @@ __3. Serverless__
   * DDD concepts
     * Subdomains
       * A department can have multiple sections, and each section may be a sub-domain
-    * Bounded contexts (scope)
+    * __Bounded contexts__ (scope)
       * Explicit boundary within which a domain model exists
     * DDD vs global business modelling
       * No single model for the entire business
@@ -256,6 +260,7 @@ __3. Serverless__
     * Timeouts for calls over the network
     * Circuit Breaker
       * microservice keeps timing out against one endpoint all the time -> no point keep trying, at least for some time -> wrapper circuit breaker does this
+      * automatic error responses for services exceeding a failure threshold in the recent past
 * __Observability__
   * combination of monitoring, distributed logging, distributed tracing, and visualization of a service’s runtime behavior and dependencies
   * May track throughput of each microservice, the number of success/failed requests, utilization of CPU, memory, latency and some business-related metrics
@@ -274,5 +279,56 @@ __3. Serverless__
       * Focus on maintaining maintain source code integrity
     * Continuous deployment
       * bundle applications, infrastructure, middleware, and the supporting installation processes and dependencies into release packages
-      
 
+## Inter-Service Communication - Part I
+* Services are autonomaus
+* Services communicate over the network
+* A __service based application__ can be considered a distributed system running __multiple services__ on __different network locations__.
+* Communication types:
+  * __Synchronous__
+    * The client sends a request and waits for response from the service. Both parties have to keep the connection open until response arrives.
+    * Can be a non-blocking IO implementation, using callbacks
+  * __Asynchronous__
+    * Send message and proceed without waiting for response
+## __Synchronous communication__
+* __REST__ (Representational State Transfer)
+  * Uses a navigational scheme to represent objects and services over a network, known as resources.
+  * Not protocol dependent
+  * With the HTTP protocol, a resource is accessed using a unique URL and the standard HTTP operations __GET, PUT, DELETE, POST__, and __HEAD__
+  * __Stateless__ servers.
+* __RPC__ (Remote Procedure Calls)
+  * Key objective
+    * Make the process of executing code on a remote machine as simple and straightforward as calling a local function
+  * Lost popularity due to complexity and performance
+  * __gRPC__
+    * Developed by Google -> now Open Source
+    * Uses __Protocol Buffers__: a language-neutral, platform-neutral extensible mechanism for serializing structured data
+    * __Interface Definition Language__ (IDL) describe both the service interface and the structure of the payload messages
+    * USes __server-side skeletions__ and __client-side stubs__ to invoke the service
+    * Uses __HTTP2__ as the transport protocol -> key reason for the success and wide adaptation of gRPC
+      * Advantages
+        * __Multiple requests__ in the same open connection
+        * __Lower overhead__ due to less redundancy over several requests (e.g. Cookies)
+        * __Avoids header repetition__ -> introduces header compression to optimize bandwidth use
+* REST - Richardson Maturity Model
+  * Level 0
+    * Not considered RESTful at all
+    * Single URL for all resources and the content decides the operation
+    * Single HTTP method (in most cases, POST) 
+    * SOAP web services are of this kind
+  * Level 1 - Resource URIs
+    * Has individual URIs for each resource, but
+    * The message still contains operation details
+  * Level 2 - HTTP verbs
+    * HTTP verbs to specifiy operation
+    * RESTful service consider to be a proper REST API
+  * Level 3 - Hypermedia Controls
+    * Service responses have links that control the application state for the client (Hypertext as The Engine of Application State
+    * Hypermedia controls tell us what we can do next, and the URI of the resource we need to manipulate to do it
+* REST - Message formats
+  * JSON
+  * GraphQL
+    * Improves the REST model by allowing to retrieve multiple data in a single call
+    * JSON format
+
+## Inter-Service Communication - Part II
